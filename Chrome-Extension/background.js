@@ -1,6 +1,6 @@
 chrome.runtime.onMessage.addListener( data => {
 	if ( data.type === 'RestaurantFinder' ) {
-		notify( data.message );
+		RestaurantFinder( data.message );
 	}
 });
 
@@ -13,14 +13,14 @@ chrome.runtime.onInstalled.addListener( () => {
 });
 
 chrome.contextMenus.onClicked.addListener( ( info, tab ) => {
-	if ( 'notify' === info.menuItemId ) {
-		notify( info.selectionText );
+	if ( 'RestaurantFinder' === info.menuItemId ) {
+		RestaurantFinder( info.selectionText );
 	}
 } );
 
-const notify = message => {
+const RestaurantFinder = message => {
 	chrome.storage.local.get( ['RestaurantFinderCount'], data => {
-		let value = data.notifyCount || 0;
+		let value = data.RestaurantFinderCount || 0;
 		chrome.storage.local.set({ 'RestaurantFinderCount': Number( value ) + 1 });
 	} );
 
