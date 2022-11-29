@@ -8,6 +8,19 @@ document.getElementById("choice").onclick = function sendData () {
     return false;
   }
 
+var x = document.getElementById("loc");
+function getLocation() {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(showPosition);
+    } else {
+        x.innerHTML = "Unavailable.";
+    }
+}
+function showPosition(position) {
+    x.innerHTML = "Latitude: " + position.coords.latitude + 
+    "<br>Longitude: " + position.coords.longitude; 
+}
+
 async function fetchData(link) {
     const res=await fetch (link, {
       method: 'GET',
@@ -32,4 +45,5 @@ async function fetchData(link) {
     table.innerHTML += row
   }
 }
+getLocation();
 fetchData();

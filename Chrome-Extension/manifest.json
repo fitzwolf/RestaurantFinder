@@ -12,6 +12,7 @@
             "128": "/assets/icons/Restaurant-128.png"
         }
     },
+    "permissions":["geolocation"],
     "icons": {
         "48": "/assets/icons/Restaurant-48.png",
         "128": "/assets/icons/Restaurant-128.png"
