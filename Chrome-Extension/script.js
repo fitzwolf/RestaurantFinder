@@ -1,6 +1,9 @@
+var lat = 0.0;
+var long = 0.0;
+
 document.getElementById("choice").onclick = function sendData () {
     // (A) GET FORM DATA
-    link = "http://127.0.0.1:8080/find?q=" + document.getElementById("Restaurant-Search").value
+    link = "http://127.0.0.1:8080/find?q=" + document.getElementById("Restaurant-Search").value + "&latitude=" + lat + "&longitude=" + long
     console.log(link);
     fetchData(link)
     
@@ -18,7 +21,9 @@ function getLocation() {
 }
 function showPosition(position) {
     x.innerHTML = "Latitude: " + position.coords.latitude + 
-    "<br>Longitude: " + position.coords.longitude; 
+    "<br>Longitude: " + position.coords.longitude;
+    lat = position.coords.latitude;
+    long = position.coords.longitude; 
 }
 
 async function fetchData(link) {
