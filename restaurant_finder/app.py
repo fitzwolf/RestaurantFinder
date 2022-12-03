@@ -17,7 +17,9 @@ def find():
         return jsonify([])
 
     search_query = unquote(search_query)
-    return jsonify(finder.find_restaurants(search_query))
+    response = jsonify(finder.find_restaurants(search_query))
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    return response
 
 
 def init_finder():
