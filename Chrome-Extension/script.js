@@ -1,6 +1,5 @@
 var lat = 0.0;
 var long = 0.0;
-
 document.getElementById("choice").onclick = function sendData () {
     // (A) GET FORM DATA
     link = "http://127.0.0.1:8080/find?q=" + document.getElementById("Restaurant-Search").value + "&latitude=" + lat + "&longitude=" + long
@@ -39,16 +38,17 @@ async function fetchData(link) {
     const record=await res.json();
     console.log(record)
     table = document.getElementById('RestaurantTable')
+    table.innerHTML = "";
     for (var i = 0; i< record.length; i++)
-  {
-    var row = `<tr>
-      <td>${record[i].name}</td>
-      <td>${record[i].address}</td>
-      <td>${record[i].stars}</td>
-    </tr>
-    `
-    table.innerHTML += row
-  }
+    {
+      var row = `<tr>
+        <td>${record[i].name}</td>
+        <td>${record[i].address}</td>
+        <td>${record[i].stars}</td>
+      </tr>
+      `
+      table.innerHTML += row
+    }
 }
 getLocation();
 fetchData();
