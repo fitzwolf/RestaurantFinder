@@ -5,13 +5,13 @@ Download yelp dataset from https://www.yelp.com/dataset and extract it.
 
 ### Install required packages
 ```commandline
-cd restaurant_finder
 pip install -r requirements.txt
 ```
 
 ### Filter and prepare restaurant dataset for indexing
 This has to be done one time only.
 ```commandline
+cd restaurant_finder
 python dataset.py -p <path-of-dataset>
 ```
 Check [Usage of dataset.py](#usage-of-datasetpy) for custom configuration
