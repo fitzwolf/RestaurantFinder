@@ -1,15 +1,19 @@
-import json
 import shutil
 
 import metapy
+import orjson
 import toml
 
 from const import *
 
 
-def get_file_contents(filename):
-    with open(filename, 'r', encoding='utf8') as file:
-        return json.loads(file.read())
+def get_file_contents(filename, file_type):
+    if file_type == 'json':
+        with open(filename, 'r', encoding='utf8') as file:
+            return orjson.loads(file.read())
+    else:
+        with open(filename, 'r', encoding='utf8') as file:
+            return file.read()
 
 
 def remove_keys(restaurant):
@@ -59,12 +63,12 @@ class Finder:
         ranker = metapy.index.OkapiBM25()
         ranked_results = ranker.score(self.idx, query, num_results=self.num_results)
 
-        reviews = get_file_contents(REVIEW_DATASET_FILENAME)
-        restaurants = get_file_contents(RESTAURANT_DATASET_FILENAME)
-        restaurant_idx = get_file_contents(RESTAURANT_INDEX_FILENAME)
+        review_txt_biz_id = get_file_contents(REVIEW_TXT_BIZ_ID_FILENAME, file_type='text').split('\n')
+        restaurants = get_file_contents(RESTAURANT_DATASET_FILENAME, file_type='json')
+        restaurant_idx = get_file_contents(RESTAURANT_INDEX_FILENAME, file_type='json')
 
         for review_idx, _ in ranked_results:
-            idx = restaurant_idx[reviews[review_idx]['business_id']]
+            idx = restaurant_idx[review_txt_biz_id[review_idx]]
             restaurant = restaurants[idx]
             search_results.append(remove_keys(restaurant))
 

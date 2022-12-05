@@ -71,6 +71,7 @@ def get_reviews(dataset_path, restaurants, restaurant_idx, review_limit_per_biz,
     biz_review_count = {}
     reviews = []
     review_txts = []
+    review_txt_biz_ids = []
 
     for i in biz_ids:
         biz_review_count[i] = 0
@@ -105,7 +106,8 @@ def get_reviews(dataset_path, restaurants, restaurant_idx, review_limit_per_biz,
                 review_txt = review_txt + 'restaurant'
 
                 review_txts.append(review_txt)
-    return reviews, review_txts
+                review_txt_biz_ids.append(review['business_id'])
+    return reviews, review_txts, review_txt_biz_ids
 
 
 def print_top_review_counts_per_biz(biz_ids, reviews):
@@ -152,25 +154,32 @@ def filter_dataset(dataset_path, review_limit, review_len_limit):
     restaurants, restaurant_idx = get_restaurants(dataset_path)
     assert len(restaurants) == len(restaurant_idx.keys())
 
-    print('Writing restaurants to file...')
+    print('Writing restaurants to a file...')
     write_file(RESTAURANT_DATASET_FILENAME, orjson.dumps(restaurants), True)
 
-    print('Writing restaurant index to file...')
+    print('Writing restaurant index to a file...')
     write_file(RESTAURANT_INDEX_FILENAME, orjson.dumps(restaurant_idx), True)
 
     print('Getting reviews of the restaurants...this will take some time')
-    reviews, review_txts = get_reviews(dataset_path, restaurants, restaurant_idx, review_limit, review_len_limit)
-    assert len(reviews) == len(review_txts)
+    reviews, review_txts, review_txt_biz_ids = get_reviews(dataset_path, restaurants, restaurant_idx, review_limit,
+                                                           review_len_limit)
+    if not combine_reviews_enabled:
+        assert len(reviews) == len(review_txts)
+    assert len(review_txts) == len(review_txt_biz_ids)
 
-    print('Writing reviews to file...this will take some time')
+    print('Writing reviews to a file...this will take some time')
     write_file(REVIEW_DATASET_FILENAME, orjson.dumps(reviews), True)
 
-    print('Writing review texts to file...this will take some time')
+    print('Writing review texts to a file...this will take some time')
     write_file(REVIEW_CORPUS_FILENAME, '\n'.join(review_txts))
 
-    with open(REVIEW_CORPUS_FILENAME, 'r', encoding='utf8') as review_corpus:
-        print('Checking review corpus length is same as number of reviews in dataset...')
-        assert len(review_corpus.readlines()) == len(reviews)
+    print('Writing business id associated to the review texts to a file...')
+    write_file(REVIEW_TXT_BIZ_ID_FILENAME, '\n'.join(review_txt_biz_ids))
+
+    if not combine_reviews_enabled:
+        with open(REVIEW_CORPUS_FILENAME, 'r', encoding='utf8') as review_corpus:
+            print('Checking review corpus length is same as number of reviews in dataset...')
+            assert len(review_corpus.readlines()) == len(reviews)
 
     print('Writing review corpus configuration file...')
     write_file(REVIEW_CORPUS_CFG_FILENAME, "type = \"line-corpus\"")
