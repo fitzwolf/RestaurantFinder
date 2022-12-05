@@ -65,13 +65,11 @@ def expand_review_with_categories(restaurant, review_txt):
     return expanded_review
 
 
-def get_reviews(dataset_path, restaurants, restaurant_idx, review_limit_per_biz, review_len_limit):
+def get_reviews_per_biz(dataset_path, restaurant_idx, review_limit_per_biz):
     # converting list to set to speed up performance
     biz_ids = set(restaurant_idx.keys())
     biz_review_count = {}
-    reviews = []
-    review_txts = []
-    review_txt_biz_ids = []
+    reviews = {}
 
     for i in biz_ids:
         biz_review_count[i] = 0
@@ -84,30 +82,55 @@ def get_reviews(dataset_path, restaurants, restaurant_idx, review_limit_per_biz,
                 biz_review_count[biz_id] += 1
                 if biz_review_count[biz_id] > review_limit_per_biz:
                     continue
+
                 review = {
                     'business_id': review['business_id'],
                     'stars': review['stars'],
                     'text': review['text']
                 }
-                reviews.append(review)
-                review_txt = review['text'][:review_len_limit].lower()
 
-                # each line of corpus should be one review
-                review_txt = review_txt.replace('\r', '')
-                review_txt = review_txt.replace('\n', '')
+                if biz_id not in reviews:
+                    reviews[biz_id] = []
+                reviews[biz_id].append(review)
 
-                if review_expansion_enabled:
-                    review_txt = expand_review_with_categories(restaurants[restaurant_idx[biz_id]], review_txt)
+    return reviews
 
-                # remove the term 'restaurant' from review text and add it to the end of each restaurant
-                # this is to avoid 'restaurant' term in the query from affecting ranking
-                review_txt = review_txt.replace('restaurants', '')
-                review_txt = review_txt.replace('restaurant', '')
-                review_txt = review_txt + 'restaurant'
 
-                review_txts.append(review_txt)
-                review_txt_biz_ids.append(review['business_id'])
-    return reviews, review_txts, review_txt_biz_ids
+def get_reviews(dataset_path, restaurants, restaurant_idx, review_limit_per_biz, review_len_limit):
+    final_review_txts = []
+    final_review_txt_biz_ids = []
+    reviews = get_reviews_per_biz(dataset_path, restaurant_idx, review_limit_per_biz)
+
+    for biz_id in reviews:
+        review_txts = []
+        review_txt_biz_ids = []
+        for review in reviews[biz_id]:
+            review_txt = review['text'][:review_len_limit].lower()
+
+            # each line of corpus should be one review
+            review_txt = review_txt.replace('\r', '')
+            review_txt = review_txt.replace('\n', '')
+
+            if review_expansion_enabled:
+                review_txt = expand_review_with_categories(restaurants[restaurant_idx[biz_id]], review_txt)
+
+            # remove the term 'restaurant' from review text and add it to the end of each restaurant
+            # this is to avoid 'restaurant' term in the query from affecting ranking
+            review_txt = review_txt.replace('restaurants', '')
+            review_txt = review_txt.replace('restaurant', '')
+            review_txt = review_txt + 'restaurant'
+
+            review_txts.append(review_txt)
+            review_txt_biz_ids.append(biz_id)
+
+        if combine_reviews_enabled:
+            final_review_txts.append(' '.join(review_txts))
+            final_review_txt_biz_ids.append(biz_id)
+        else:
+            final_review_txts += review_txts
+            final_review_txt_biz_ids += review_txt_biz_ids
+
+    return reviews, final_review_txts, final_review_txt_biz_ids
 
 
 def print_top_review_counts_per_biz(biz_ids, reviews):
@@ -163,12 +186,15 @@ def filter_dataset(dataset_path, review_limit, review_len_limit):
     print('Getting reviews of the restaurants...this will take some time')
     reviews, review_txts, review_txt_biz_ids = get_reviews(dataset_path, restaurants, restaurant_idx, review_limit,
                                                            review_len_limit)
-    if not combine_reviews_enabled:
-        assert len(reviews) == len(review_txts)
-    assert len(review_txts) == len(review_txt_biz_ids)
 
-    print('Writing reviews to a file...this will take some time')
-    write_file(REVIEW_DATASET_FILENAME, orjson.dumps(reviews), True)
+    n_reviews = 0
+    if combine_reviews_enabled:
+        assert len(reviews) == len(review_txt_biz_ids)
+    else:
+        for biz_reviews in [len(reviews[biz_id]) for biz_id in reviews]:
+            n_reviews += biz_reviews
+        assert len(review_txts) == n_reviews
+    assert len(review_txts) == len(review_txt_biz_ids)
 
     print('Writing review texts to a file...this will take some time')
     write_file(REVIEW_CORPUS_FILENAME, '\n'.join(review_txts))
@@ -176,10 +202,12 @@ def filter_dataset(dataset_path, review_limit, review_len_limit):
     print('Writing business id associated to the review texts to a file...')
     write_file(REVIEW_TXT_BIZ_ID_FILENAME, '\n'.join(review_txt_biz_ids))
 
-    if not combine_reviews_enabled:
-        with open(REVIEW_CORPUS_FILENAME, 'r', encoding='utf8') as review_corpus:
-            print('Checking review corpus length is same as number of reviews in dataset...')
+    with open(REVIEW_CORPUS_FILENAME, 'r', encoding='utf8') as review_corpus:
+        print('Checking review corpus length is same as number of reviews in dataset...')
+        if combine_reviews_enabled:
             assert len(review_corpus.readlines()) == len(reviews)
+        else:
+            assert len(review_corpus.readlines()) == n_reviews
 
     print('Writing review corpus configuration file...')
     write_file(REVIEW_CORPUS_CFG_FILENAME, "type = \"line-corpus\"")

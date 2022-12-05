@@ -1,7 +1,7 @@
-import json
 import shutil
 
 import metapy
+import orjson
 import toml
 
 from const import *
@@ -10,7 +10,7 @@ from const import *
 def get_file_contents(filename, file_type):
     if file_type == 'json':
         with open(filename, 'r', encoding='utf8') as file:
-            return json.loads(file.read())
+            return orjson.loads(file.read())
     else:
         with open(filename, 'r', encoding='utf8') as file:
             return file.read()
