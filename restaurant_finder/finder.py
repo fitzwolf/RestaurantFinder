@@ -7,13 +7,9 @@ import toml
 from const import *
 
 
-def get_file_contents(filename, file_type):
-    if file_type == 'json':
-        with open(filename, 'r', encoding='utf8') as file:
-            return json.loads(file.read())
-    else:
-        with open(filename, 'r', encoding='utf8') as file:
-            return file.read()
+def get_file_contents(filename):
+    with open(filename, 'r', encoding='utf8') as file:
+        return json.loads(file.read())
 
 
 def remove_keys(restaurant):
@@ -45,6 +41,7 @@ class Finder:
             shutil.rmtree(index_dirpath)
 
     def make_inverted_index(self):
+        print('Building index...this will take some time')
         self.idx = metapy.index.make_inverted_index(self.cfg_filename)
         return self.idx
 
@@ -62,12 +59,13 @@ class Finder:
         ranker = metapy.index.OkapiBM25()
         ranked_results = ranker.score(self.idx, query, num_results=self.num_results)
 
-        reviews = get_file_contents(REVIEW_DATASET_FILENAME, file_type='json')
-        restaurants = get_file_contents(BIZ_DATASET_FILENAME, file_type='json')
-        biz_ids = get_file_contents(BIZ_ID_FILENAME, file_type='text').split('\n')
+        reviews = get_file_contents(REVIEW_DATASET_FILENAME)
+        restaurants = get_file_contents(RESTAURANT_DATASET_FILENAME)
+        restaurant_idx = get_file_contents(RESTAURANT_INDEX_FILENAME)
 
         for review_idx, _ in ranked_results:
-            restaurant = restaurants[biz_ids.index(reviews[review_idx]['business_id'])]
+            idx = restaurant_idx[reviews[review_idx]['business_id']]
+            restaurant = restaurants[idx]
             search_results.append(remove_keys(restaurant))
 
         return search_results

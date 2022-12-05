@@ -1,10 +1,12 @@
 import argparse
 import shutil
 import sys
+import time
 
 import orjson
 
 from const import *
+from switches import *
 
 
 def get_biz_categories(dataset_path):
@@ -24,7 +26,7 @@ def get_biz_categories(dataset_path):
 def get_restaurants(dataset_path):
     restaurant_cat_list = ['restaurants', 'pop-up restaurants']
     restaurants = []
-    biz_ids = []
+    restaurant_idx = {}
     with open(dataset_path / (FULL_DATASET_FILE_PREFIX + 'business.json'), 'r', encoding='utf8') as r:
         for line in r:
             biz = orjson.loads(line)
@@ -34,14 +36,38 @@ def get_restaurants(dataset_path):
             for category in biz_cats:
                 if category.lower() in restaurant_cat_list:
                     restaurants.append(biz)
-                    biz_ids.append(biz['business_id'])
+                    biz_id = biz['business_id']
+                    if biz_id in restaurant_idx:
+                        raise KeyError(f'Business id, {biz_id}, already exists in the restaurant index dict. '
+                                       f'Business id should be unique in the business dataset.')
+                    restaurant_idx[biz_id] = len(restaurants) - 1
                     break
-    return restaurants, biz_ids
+    return restaurants, restaurant_idx
 
 
-def get_reviews(dataset_path, biz_ids, review_limit_per_biz, review_len_limit):
+def expand_review_with_categories(restaurant, review_txt):
+    expanded_review = ''
+    expanded_review += review_txt
+    categories = restaurant['categories']
+    if categories is None or categories.strip() == '':
+        return expanded_review
+    for c in restaurant['categories'].split(','):
+        c = c.lower().strip()
+        category_words = c.split(' ')
+        for word in category_words:
+            word = word.strip()
+            if word == '&' or word == 'and' or 'restaurant' in word:
+                continue
+            # if category word already exists in review then not adding it again to the review
+            # otherwise I think duplicate word can increase emphasis on that word
+            if word not in review_txt:
+                expanded_review = word + ' ' + expanded_review
+    return expanded_review
+
+
+def get_reviews(dataset_path, restaurants, restaurant_idx, review_limit_per_biz, review_len_limit):
     # converting list to set to speed up performance
-    biz_ids = set(biz_ids)
+    biz_ids = set(restaurant_idx.keys())
     biz_review_count = {}
     reviews = []
     review_txts = []
@@ -62,13 +88,23 @@ def get_reviews(dataset_path, biz_ids, review_limit_per_biz, review_len_limit):
                     'stars': review['stars'],
                     'text': review['text']
                 }
-                review['text'] = review['text'][:review_len_limit]
                 reviews.append(review)
+                review_txt = review['text'][:review_len_limit].lower()
 
                 # each line of corpus should be one review
-                review['text'] = review['text'].replace('\r', '')
-                review['text'] = review['text'].replace('\n', '')
-                review_txts.append(review['text'])
+                review_txt = review_txt.replace('\r', '')
+                review_txt = review_txt.replace('\n', '')
+
+                if review_expansion_enabled:
+                    review_txt = expand_review_with_categories(restaurants[restaurant_idx[biz_id]], review_txt)
+
+                # remove the term 'restaurant' from review text and add it to the end of each restaurant
+                # this is to avoid 'restaurant' term in the query from affecting ranking
+                review_txt = review_txt.replace('restaurants', '')
+                review_txt = review_txt.replace('restaurant', '')
+                review_txt = review_txt + 'restaurant'
+
+                review_txts.append(review_txt)
     return reviews, review_txts
 
 
@@ -113,17 +149,17 @@ def write_file(filename, data, is_binary_mode=False):
 
 def filter_dataset(dataset_path, review_limit, review_len_limit):
     print('Getting restaurants...')
-    restaurants, biz_ids = get_restaurants(dataset_path)
-    assert len(restaurants) == len(biz_ids)
+    restaurants, restaurant_idx = get_restaurants(dataset_path)
+    assert len(restaurants) == len(restaurant_idx.keys())
 
     print('Writing restaurants to file...')
-    write_file(BIZ_DATASET_FILENAME, orjson.dumps(restaurants), True)
+    write_file(RESTAURANT_DATASET_FILENAME, orjson.dumps(restaurants), True)
 
-    print('Writing restaurants ids to file...')
-    write_file(BIZ_ID_FILENAME, '\n'.join(biz_ids))
+    print('Writing restaurant index to file...')
+    write_file(RESTAURANT_INDEX_FILENAME, orjson.dumps(restaurant_idx), True)
 
     print('Getting reviews of the restaurants...this will take some time')
-    reviews, review_txts = get_reviews(dataset_path, biz_ids, review_limit, review_len_limit)
+    reviews, review_txts = get_reviews(dataset_path, restaurants, restaurant_idx, review_limit, review_len_limit)
     assert len(reviews) == len(review_txts)
 
     print('Writing reviews to file...this will take some time')
@@ -157,7 +193,10 @@ if __name__ == '__main__':
         print('Cleaning existing dataset...')
         clean_existing_dataset()
 
+    start_time = time.time()
+
     create_dir_struct()
     filter_dataset(dataset_dirpath, args.review_limit, args.review_length_limit)
 
+    print(f'Time taken: {round(time.time() - start_time, 2)} seconds')
     sys.exit(0)
