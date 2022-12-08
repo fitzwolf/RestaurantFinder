@@ -58,8 +58,28 @@ function getNearestRestaurantElement(restaurantList) {
   return nearestElement;
 }
 
+function clear() {
+  userInput = document.getElementById("user-query")
+  userInput.innerHTML = ""
+  table = document.getElementById("search-results")
+  table.innerHTML = ""
+}
+
 // get search results
-async function fetchData(link) {
+async function fetchData() {
+  userQuery = document.getElementById("user-query").value;
+
+  if (userQuery === null || userQuery.trim() === "") {
+    clear();
+    return;
+  }
+
+  let link = appUrl + findApiPath + "?q=" + userQuery + "&count=60"
+
+  if (document.getElementById("location-switch").checked && lat !== null && long !== null) {
+    link += "&latitude=" + lat + "&longitude=" + long
+  }
+
   const res = await fetch(link, {
     method: 'GET',
     headers: {
@@ -71,7 +91,17 @@ async function fetchData(link) {
     throw new Error('ERROR: status: ${res.status} ')
   }
 
-  const restaurantList = await res.json();
+  restaurantList = await res.json();
+  restaurantList = restaurantList.slice(0, document.getElementById("num-results").value)
+
+  if (!document.getElementById("location-switch").checked) {
+    restaurantList.sort((a, b) => {
+      rankA = a.original_rank;
+      rankB = b.original_rank;
+      return (rankA < rankB) ? -1 : ((rankA > rankB) ? 1 : 0);
+    })
+  }
+
   table = document.getElementById('search-results')
   table.innerHTML = `
     <table class="col table table-light table-hover caption-top mt-1 mb-0">
@@ -119,23 +149,26 @@ function getUserLocation() {
 
 // event listener for 'Go' button
 document.getElementById("go").onclick = () => {
-  link = appUrl + findApiPath + "?q=" + document.getElementById("user-query").value + "&count=" + document.getElementById("num-results").value
-
-  if (document.getElementById("location-switch").checked && lat !== null && long !== null) {
-    link += "&latitude=" + lat + "&longitude=" + long
-  }
-
-  fetchData(link)
+  fetchData()
   // prevent form submit
   return false;
 }
 
 // event listener for 'Clear' button
 document.getElementById("clear-results").onclick = () => {
-  userInput = document.getElementById("user-query")
-  userInput.innerHTML = ""
-  table = document.getElementById("search-results")
-  table.innerHTML = ""
+  clear();
+  return false;
+}
+
+// event listener for number of results select input
+document.getElementById("num-results").onchange = () => {
+  fetchData()
+  return false;
+}
+
+// event listener for location switch
+document.getElementById("location-switch").onchange = () => {
+  fetchData()
   return false;
 }
 

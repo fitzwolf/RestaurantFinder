@@ -39,6 +39,7 @@ class Finder:
         self.num_results = num_results
         self.idx = None
         self.loc_sorted_results = []
+        self.search_results = []
         self.final_search_results = []
 
         self.review_txt_biz_id = get_file_contents(REVIEW_TXT_BIZ_ID_FILENAME, file_type='text').split('\n')
@@ -75,47 +76,51 @@ class Finder:
             else:
                 result['nearest'] = False
 
-    def combine_location_sorted_and_orig_results(self, search_results):
+    def combine_location_sorted_and_orig_results(self):
         if len(self.loc_sorted_results) == 0:
+            return
+        if len(self.search_results) == 0:
             return
 
         restaurant_id = self.loc_sorted_results[0]['business_id']
         search_idx = None
 
-        for idx, s_result in enumerate(search_results):
+        for idx, s_result in enumerate(self.search_results):
             if s_result['business_id'] == restaurant_id:
                 search_idx = idx
                 break
 
         if search_idx is None:
-            self.final_search_results.append(self.loc_sorted_results[0])
+            self.final_search_results.append(self.loc_sorted_results.pop(0))
         else:
             rank_diff = search_idx
-            distance_diff = abs(search_results[0]['distance'] - search_results[search_idx]['distance'])
-            if rank_diff < ACCEPTABLE_RANKING_DIFFERENCE and distance_diff > ACCEPTABLE_DISTANCE_DIFFERENCE:
-                self.final_search_results.append(self.loc_sorted_results[0])
+            distance_diff = abs(self.search_results[0]['distance'] - self.search_results[search_idx]['distance'])
+            if rank_diff < MAX_RANK_DIFFERENCE and distance_diff > MIN_DISTANCE_DIFFERENCE:
+                self.final_search_results.append(self.loc_sorted_results.pop(0))
+                self.search_results.pop(search_idx)
             else:
-                self.final_search_results.append(search_results[search_idx])
+                self.final_search_results.append(self.search_results.pop(0))
+                if rank_diff > MAX_RANK_DIFFERENCE:
+                    self.loc_sorted_results.pop(0)
 
-        self.loc_sorted_results.pop(0)
-        if search_idx is not None:
-            search_results.pop(search_idx)
-        self.combine_location_sorted_and_orig_results(search_results)
+        self.combine_location_sorted_and_orig_results()
 
-    def sort_by_rank_and_location(self, search_results, user_location):
-        if not location_based_sorting or user_location[0] is None or user_location[1] is None:
-            self.final_search_results = search_results
+    def sort_by_rank_and_location(self, user_location):
+        if user_location[0] is None or user_location[1] is None:
+            self.final_search_results = self.search_results
+            return
 
-        for result in search_results:
+        for result in self.search_results:
             restaurant_location = (result['latitude'], result['longitude'])
             result['distance'] = round(distance.distance(user_location, restaurant_location).miles, 2)
-        self.loc_sorted_results = sorted(search_results, key=lambda x: x['distance'])
-        self.combine_location_sorted_and_orig_results(search_results)
+        self.loc_sorted_results = sorted(self.search_results, key=lambda x: x['distance'])
+        self.combine_location_sorted_and_orig_results()
 
     def find_restaurants(self, query_str, num_results, user_location):
         self.final_search_results = []
+        self.search_results = []
+        self.loc_sorted_results = []
         self.num_results = num_results
-        search_results = []
         query = metapy.index.Document()
         query.content(query_str)
         ranker = metapy.index.OkapiBM25()
@@ -128,12 +133,13 @@ class Finder:
         for review_idx, _ in ranked_results:
             idx = self.restaurant_idx[self.review_txt_biz_id[review_idx]]
             restaurant = self.restaurants[idx]
-            search_results.append(remove_keys(restaurant))
+            restaurant['original_rank'] = len(self.search_results) + 1
+            self.search_results.append(remove_keys(restaurant))
 
         if location_based_sorting:
-            self.sort_by_rank_and_location(search_results, user_location)
+            self.sort_by_rank_and_location(user_location)
         else:
-            self.final_search_results = search_results
+            self.final_search_results = self.search_results
 
         if len(self.final_search_results) >= self.num_results:
             self.final_search_results = self.final_search_results[:self.num_results]
