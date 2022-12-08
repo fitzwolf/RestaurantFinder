@@ -1,4 +1,12 @@
-# Restaurant Finder
+<h1 align="center">Restaurant Finder</h1>
+<div align="center">A Chrome extension to search restaurants based on user query.</div>
+<br />
+<div align="center">
+<span><img src="screenshot/default-ui.jpg" width="300" align="top"></span>
+<span><img src="screenshot/ui-20-results-location-enabled.jpg" width="300"></span>
+<span><img src="screenshot/ui-40-results-location-disabled.jpg" width="300"></span>
+</div>
+<br />
 
 ## Setup
 Download yelp dataset from https://www.yelp.com/dataset and extract it.
