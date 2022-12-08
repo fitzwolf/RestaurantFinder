@@ -1,0 +1,33 @@
+body {
+    width: 24rem;
+}
+
+.bg {
+    background-color: #fff;
+}
+
+.top-container {
+    font-family: 'Varela Round';
+    color: #3c5f7b;
+    background-color: #e8f4fd;
+}
+
+.search-conf-container {
+    color: #3c5f7b;
+    background-color: #e8f4fd;
+}
+
+.btn-light {
+    background-color: #e5e3e3 !important;
+    color: #263f53 !important;
+}
+
+.btn-light:hover {
+    border-color: #c6c5c5 !important;
+    background-color: #c6c5c5 !important;
+    color: #263f53 !important;
+}
+
+.form-check-input:checked {
+    background-color: #3c5f7b !important;
+}

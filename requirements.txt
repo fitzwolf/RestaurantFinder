@@ -1,0 +1,5 @@
+Flask==2.2.2
+geopy==2.3.0
+metapy==0.2.13
+orjson==3.8.3
+toml==0.10.2
