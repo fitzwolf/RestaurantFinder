@@ -12,12 +12,20 @@ app = Flask(__name__)
 @app.route('/find')
 def find():
     search_query = request.args.get('q')
+    latitude = request.args.get('latitude')
+    longitude = request.args.get('longitude')
+
+    if latitude is not None:
+        latitude = float(latitude)
+
+    if longitude is not None:
+        longitude = float(longitude)
 
     if search_query is None:
         return jsonify([])
 
     search_query = unquote(search_query)
-    response = jsonify(finder.find_restaurants(search_query))
+    response = jsonify(finder.find_restaurants(search_query, (latitude, longitude)))
     response.headers.add('Access-Control-Allow-Origin', '*')
     return response
 
