@@ -3,8 +3,8 @@
 <br />
 <div align="center">
 <span><img src="screenshot/default-ui.jpg" width="250" align="top"></span>
-<span><img src="screenshot/ui-20-results-location-enabled.jpg" width="250"></span>
-<span><img src="screenshot/ui-40-results-location-disabled.jpg" width="250"></span>
+<span><img src="screenshot/ui-20-results-location-enabled.jpg" width="250" align="top"></span>
+<span><img src="screenshot/ui-40-results-location-disabled.jpg" width="250" align="top"></span>
 </div>
 <br />
 
