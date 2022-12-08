@@ -9,7 +9,7 @@
 <br />
 
 ## Video documentation on usage and setup.
-Within this repo there is also a video: Howto-Install-and-Use-720.mp4 that will guide you
+Within this repo there is a video: Howto-Install-and-Use-720.mp4 that will guide you
 through install, setup and usage.
 
 ## Setup
