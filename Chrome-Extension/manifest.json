@@ -8,15 +8,15 @@
         "default_popup": "popup/index.html",
         "default_title": "Restaurant Finder",
         "default_icon": {
-            "48": "/assets/icons/restaurant-48.png",
-            "128": "/assets/icons/restaurant-128.png"
+            "48": "assets/icons/Restaurant-48.png",
+            "128": "assets/icons/Restaurant-128.png"
         }
     },
     "permissions": [
         "geolocation"
     ],
     "icons": {
-        "48": "/assets/icons/restaurant-48.png",
-        "128": "/assets/icons/restaurant-128.png"
+        "48": "assets/icons/Restaurant-48.png",
+        "128": "assets/icons/Restaurant-128.png"
     }
 }
