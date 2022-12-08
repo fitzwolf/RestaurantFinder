@@ -112,8 +112,9 @@ class Finder:
         self.loc_sorted_results = sorted(search_results, key=lambda x: x['distance'])
         self.combine_location_sorted_and_orig_results(search_results)
 
-    def find_restaurants(self, query_str, user_location):
+    def find_restaurants(self, query_str, num_results, user_location):
         self.final_search_results = []
+        self.num_results = num_results
         search_results = []
         query = metapy.index.Document()
         query.content(query_str)

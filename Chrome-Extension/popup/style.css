@@ -8,8 +8,13 @@ body {
 
 .top-container {
     font-family: 'Varela Round';
-    background-color: #e8f4fd;
     color: #3c5f7b;
+    background-color: #e8f4fd;
+}
+
+.search-conf-container {
+    color: #3c5f7b;
+    background-color: #e8f4fd;
 }
 
 .btn-light {
@@ -21,4 +26,8 @@ body {
     border-color: #c6c5c5 !important;
     background-color: #c6c5c5 !important;
     color: #263f53 !important;
+}
+
+.form-check-input:checked {
+    background-color: #3c5f7b !important;
 }

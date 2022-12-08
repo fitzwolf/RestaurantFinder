@@ -4,8 +4,8 @@
 // data is fetched from the restaurant finder app which is running in the background
 // for the UI, this app uses bootstrap framework
 
-let lat;
-let long;
+let lat = null;
+let long = null;
 const appUrl = "http://127.0.0.1:8080"
 const findApiPath = "/find"
 
@@ -74,7 +74,7 @@ async function fetchData(link) {
   const restaurantList = await res.json();
   table = document.getElementById('search-results')
   table.innerHTML = `
-    <table class="col table table-light table-hover caption-top mb-0">
+    <table class="col table table-light table-hover caption-top mt-1 mb-0">
       <caption class="p-2">
         <div><small>Search results<small></div>
         ${getNearestRestaurantElement(restaurantList)}
@@ -107,12 +107,21 @@ async function fetchData(link) {
   })
 }
 
+// get user location
+function getUserLocation() {
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition((position) => {
+      lat = position.coords.latitude;
+      long = position.coords.longitude;
+    });
+  }
+}
 
 // event listener for 'Go' button
 document.getElementById("go").onclick = () => {
-  link = appUrl + findApiPath + "?q=" + document.getElementById("user-query").value
+  link = appUrl + findApiPath + "?q=" + document.getElementById("user-query").value + "&count=" + document.getElementById("num-results").value
 
-  if (lat !== undefined && long !== undefined) {
+  if (document.getElementById("location-switch").checked && lat !== null && long !== null) {
     link += "&latitude=" + lat + "&longitude=" + long
   }
 
@@ -130,14 +139,4 @@ document.getElementById("clear-results").onclick = () => {
   return false;
 }
 
-// get user location
-function getLocation() {
-  if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition((position) => {
-      lat = position.coords.latitude;
-      long = position.coords.longitude;
-    });
-  }
-}
-
-getLocation();
+getUserLocation();
