@@ -8,6 +8,10 @@
 </div>
 <br />
 
+## Video documentation on usage and setup.
+Within this repo there is also a video: Howto-Install-and-Use-720.mp4 that will guide you
+through install, setup and usage.
+
 ## Setup
 Download yelp dataset from https://www.yelp.com/dataset and extract it.
 
