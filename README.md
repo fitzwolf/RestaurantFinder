@@ -2,9 +2,9 @@
 <div align="center">A Chrome extension to search restaurants based on user query.</div>
 <br />
 <div align="center">
-<span><img src="screenshot/default-ui.jpg" width="200" align="top"></span>
-<span><img src="screenshot/ui-20-results-location-enabled.jpg" width="200"></span>
-<span><img src="screenshot/ui-40-results-location-disabled.jpg" width="200"></span>
+<span><img src="screenshot/default-ui.jpg" width="250" align="top"></span>
+<span><img src="screenshot/ui-20-results-location-enabled.jpg" width="250"></span>
+<span><img src="screenshot/ui-40-results-location-disabled.jpg" width="250"></span>
 </div>
 <br />
 
