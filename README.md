@@ -61,7 +61,7 @@ of setup to create subset of dataset that only has restaurants.
 ## Indexing and Ranking
 
 We are using MeTA toolkit to create inverted index of the restaurant reviews and rank them using Okapi BM25 ranking
-function with default parameters. Once ranked, we map back review to the restaurant and return the ranked list of
+function with default parameters. Once ranked, we map reviews to the restaurants and return the ranked list of
 restaurants to the user. We are relying on unigram word count, and use these filters on the analyzer - icu-tokenizer (
 for tokenization), lowercase, list (for stopwords), and Porter2 stemmer.
 
