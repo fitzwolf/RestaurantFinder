@@ -28,7 +28,7 @@
     * [Searching for restaurants](#searching-for-restaurants)
 - [Misc](#misc)
     * [Get list of restaurants based on query](#get-list-of-restaurants-based-on-query)
-    * [Query Parameters of find API](#query-parameters-of-em-find-em-api)
+    * [Query Parameters of find API](#query-parameters-of-find-api)
     * [Usage of dataset.py](#usage-of-datasetpy)
 - [Notes to the reviewer](#notes-to-the-reviewer)
 
