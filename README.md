@@ -14,6 +14,7 @@
 - [Components](#components)
 - [Flow](#flow)
 - [Search Dataset](#search-dataset)
+- [Indexing and Ranking](#indexing-and-ranking)
 - [Video on Usage and Setup](#video-on-usage-and-setup)
 - [Requirements](#requirements)
 - [Setup](#setup)
@@ -54,7 +55,15 @@ location etc. This response is then used by the extension to return the search r
 For the dataset, we are using Yelp's open dataset to build inverted index for search and to return restaurant info
 based on the ranked results. This dataset is a collection of datasets - business, checkin, review, tip, user. For our
 purpose,
-we only use business and review datasets which are linked to each other by business id.
+we only use business and review datasets which are linked to each other by business id. We filter these datasets as part
+of setup to create subset of dataset that only has restaurants.
+
+## Indexing and Ranking
+
+We are using MeTA toolkit to create inverted index of the restaurant reviews and rank them using Okapi BM25 ranking
+function with default parameters. Once ranked, we map back review to the restaurant and return the ranked list of
+restaurants to the user. We are relying on unigram word count, and use these filters on the analyzer - icu-tokenizer (
+for tokenization), lowercase, list (for stopwords), and Porter2 stemmer.
 
 ## Video on Usage and Setup
 
@@ -82,8 +91,8 @@ you can use below-mentioned commands to create and activate Python virtual envir
 recommended.
 
 ```commandline
-$ conda create -n <virtual-env-name> python=3.7
-$ conda activate <virtual-env-name>
+conda create -n <virtual-env-name> python=3.7
+conda activate <virtual-env-name>
 ```
 
 #### Install required packages
@@ -131,7 +140,7 @@ python app.py
 
 ### Searching for restaurants
 
-Note - The Restaurant finder Chrome Extension has access to your current location.
+Note - The Restaurant Finder Chrome Extension has access to your current location.
 
 - Open Google Chrome.
 - Click on the 'Restaurant Finder' extension.
@@ -164,7 +173,7 @@ Following are the parameters that the find API supports:
 ### Usage of dataset.py
 
 ```commandline
-$ python dataset.py --help
+python dataset.py --help
 
 usage: dataset.py [-h] -p DATASET_DIRPATH [--review-limit REVIEW_LIMIT]
                   [--review-length-limit REVIEW_LENGTH_LIMIT] [--skip-clean]
@@ -188,7 +197,7 @@ optional arguments:
 - Setup - We recommend that you test on a clean setup by creating a virtual environment specifically for reviewing the
   project.
 - Location access - Restaurant finder Chrome extension has access to the user's current location by default, and it
-  cannot be turned off. There is no prompt where it will be requested.
+  cannot be turned off without code change. There is no prompt where it will be requested.
 - Location switch - "Enable location" switch that you see in Chrome extension is to send/not send the user's current
   location
   info to the search app. It does not affect the access of Chrome extension to the user's location.
