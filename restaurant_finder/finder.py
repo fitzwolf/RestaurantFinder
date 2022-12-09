@@ -1,3 +1,4 @@
+import copy
 import shutil
 
 import metapy
@@ -107,7 +108,7 @@ class Finder:
 
     def sort_by_rank_and_location(self, user_location):
         if user_location[0] is None or user_location[1] is None:
-            self.final_search_results = self.search_results
+            self.final_search_results = copy.deepcopy(self.search_results)
             return
 
         for result in self.search_results:
@@ -132,14 +133,14 @@ class Finder:
 
         for review_idx, _ in ranked_results:
             idx = self.restaurant_idx[self.review_txt_biz_id[review_idx]]
-            restaurant = self.restaurants[idx]
+            restaurant = copy.deepcopy(self.restaurants[idx])
             restaurant['original_rank'] = len(self.search_results) + 1
             self.search_results.append(remove_keys(restaurant))
 
         if location_based_sorting:
             self.sort_by_rank_and_location(user_location)
         else:
-            self.final_search_results = self.search_results
+            self.final_search_results = copy.deepcopy(self.search_results)
 
         if len(self.final_search_results) >= self.num_results:
             self.final_search_results = self.final_search_results[:self.num_results]
